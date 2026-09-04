@@ -1,0 +1,9 @@
+{
+  "name": "verity-portfolio-v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Verity V1 portfolio — stable Hostinger edition",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
