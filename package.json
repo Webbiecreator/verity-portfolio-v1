@@ -4,6 +4,7 @@
   "private": true,
   "description": "Verity V1 portfolio — stable Hostinger edition",
   "scripts": {
+    "build": "echo Build step complete",
     "start": "node server.js"
   }
 }
