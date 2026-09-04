@@ -37,23 +37,30 @@ export default function Home() {
   const projectStoryRef = useRef(null);
   const projectStageRef = useRef(null);
   const progressRef = useRef(null);
+  const cursorGlowRef = useRef(null);
 
   useEffect(() => {
     const hero = heroRef.current;
     const story = projectStoryRef.current;
     const stage = projectStageRef.current;
     const progress = progressRef.current;
-    if (!hero || !story || !stage || !progress) return;
+    const cursorGlow = cursorGlowRef.current;
+    if (!hero || !story || !stage || !progress || !cursorGlow) return;
 
     let raf = 0;
+    let cursorRaf = 0;
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
 
     const update = () => {
       raf = 0;
 
       const heroRect = hero.getBoundingClientRect();
-      const heroProgress = Math.min(1, Math.max(0, -heroRect.top / Math.max(hero.offsetHeight, 1)));
+      const heroProgress = Math.min(
+        1,
+        Math.max(0, -heroRect.top / Math.max(hero.offsetHeight, 1)),
+      );
       hero.style.setProperty("--hero-progress", heroProgress.toString());
-      hero.style.setProperty("--mouse-shift", `${heroProgress * 18}px`);
 
       const rect = story.getBoundingClientRect();
       const travel = Math.max(story.offsetHeight - window.innerHeight, 1);
@@ -72,7 +79,8 @@ export default function Home() {
       panels.forEach((panel, index) => {
         const distance = index - active;
         const opacity = Math.max(0, 1 - Math.min(1, Math.abs(distance) * 1.4));
-        const translate = distance * 12 + (index === active ? -local * 12 : 0);
+        const translate =
+          distance * 12 + (index === active ? -local * 12 : 0);
         const scale = index === active ? 1 - local * 0.04 : 0.94;
         panel.style.opacity = opacity.toString();
         panel.style.transform = `translate3d(0, ${translate}%, 0) scale(${scale})`;
@@ -81,25 +89,40 @@ export default function Home() {
       });
     };
 
+    const updateCursor = () => {
+      cursorRaf = 0;
+      cursorGlow.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0) translate(-50%, -50%)`;
+    };
+
+    const onPointerMove = (event) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      if (!cursorRaf) cursorRaf = window.requestAnimationFrame(updateCursor);
+    };
+
     const onScroll = () => {
       if (!raf) raf = window.requestAnimationFrame(update);
     };
 
     update();
+    updateCursor();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener("pointermove", onPointerMove);
       if (raf) window.cancelAnimationFrame(raf);
+      if (cursorRaf) window.cancelAnimationFrame(cursorRaf);
     };
   }, []);
 
   return (
     <>
       <div className="noise" />
-      <div className="cursor-glow" aria-hidden="true" />
+      <div ref={cursorGlowRef} className="cursor-glow" aria-hidden="true" />
 
       <header className="nav wrap">
         <a className="brand" href="#top" aria-label="Verity home">
